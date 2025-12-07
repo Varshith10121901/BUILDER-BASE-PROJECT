@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>AgriLens – Smart Agriculture Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- ===== CDN DEPS ===== -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <!-- ===== quick env config ===== -->
+  <script>
+    window.ENV = {
+      API_BASE: "http://127.0.0.1:5000"   // change here only
+    };
+  </script>
+
+  <style>
+    /* intro splash */
+    @keyframes bounce-slow{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+    .animate-bounce-slow{animation:bounce-slow 2s ease-in-out infinite}
+    #intro-splash{transition:opacity .8s ease-out,transform .8s ease-out}
+    #intro-splash.fade-out{opacity:0;transform:scale(1.1)}
+    #intro-content{animation:fadeInUp 1s ease-out}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+
+<body class="min-h-screen bg-gray-50 text-gray-800">
+
+<!-- ========= INTRO SPLASH ========= -->
+<div id="intro-splash" class="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-green-950">
+  <div id="intro-content" class="text-center">
+    <div class="mb-6 inline-block bg-gradient-to-br from-green-500 to-emerald-600 p-6 rounded-3xl shadow-2xl animate-bounce-slow">
+      <i data-lucide="leaf" class="w-20 h-20 text-white"></i>
+    </div>
+    <h1 class="text-6xl font-bold mb-3 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600 bg-clip-text text-transparent">AgriLens</h1>
+    <p class="text-xl text-green-300 font-light tracking-wide">Smart Agriculture Platform</p>
+    <div class="flex justify-center gap-2 mt-8">
+      <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+      <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse" style="animation-delay:.2s"></div>
+      <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse" style="animation-delay:.4s"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= HOME PAGE ========= -->
+<div id="home-page" class="hidden">
+  <header class="bg-white shadow-sm sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-green-600 p-2 rounded-lg"><i data-lucide="leaf" class="w-6 h-6 text-white"></i></div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">AgriLens</h1>
+          <p class="text-sm text-gray-600">Smart Agriculture Platform</p>
+        </div>
+      </div>
+      <button id="go-detector-btn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition flex items-center gap-2">
+        <i data-lucide="camera" class="w-4 h-4"></i> Detect Disease
+      </button>
+    </div>
+  </header>
+
+  <!-- weather bar -->
+  <div id="weather-bar" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <i data-lucide="cloud-rain" class="w-6 h-6"></i>
+        <div>
+          <p class="font-semibold">Rainfall Prediction – <span id="weather-location">Bengaluru Region</span></p>
+          <p class="text-sm text-blue-100">Expected: <span id="weather-rain-tomorrow">35 mm</span> tomorrow | <span id="weather-rain-week">80 mm</span> this week</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <p class="text-2xl font-bold"><span id="weather-temp">28</span>°C</p>
+        <p class="text-sm text-blue-100"><span id="weather-desc">Partly Cloudy</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- breaking news -->
+  <section class="bg-white border-b border-gray-200 py-8">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2"><i data-lucide="trending-up" class="w-6 h-6 text-red-600"></i> Breaking News & Alerts</h2>
+        <div class="flex gap-2">
+          <button id="news-prev-btn" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+          <button id="news-next-btn" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+        </div>
+      </div>
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-50 to-orange-50 p-8 min-h-48">
+        <div class="flex items-start gap-4">
+          <span id="news-type-badge" class="px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">TYPE</span>
+          <div class="flex-1">
+            <h3 id="news-title" class="text-2xl font-bold text-gray-800 mb-2">Title</h3>
+            <p id="news-description" class="text-gray-600 mb-3">Description</p>
+            <p id="news-date" class="text-sm text-gray-500">Date</p>
+          </div>
+        </div>
+      </div>
+      <div id="news-dots" class="flex justify-center gap-2 mt-4"></div>
+    </div>
+  </section>
+
+  <!-- innovations -->
+  <section class="py-12 bg-gradient-to-br from-green-50 to-emerald-50">
+    <div class="max-w-7xl mx-auto px-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2"><i data-lucide="sparkles" class="w-6 h-6 text-yellow-500"></i> Agriculture Innovations & New Methods</h2>
+      <p class="text-gray-600 mb-8">Latest fertilizers, farming techniques, and breakthrough technologies</p>
+      <div id="innovations-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- cards injected --></div>
+    </div>
+  </section>
+</div>
+
+<!-- ========= DETECTOR PAGE ========= -->
+<div id="detector-page" class="hidden min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+  <header class="bg-white shadow-sm border-b border-green-200">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-green-600 p-2 rounded-lg"><i data-lucide="leaf" class="w-6 h-6 text-white"></i></div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">AgriLens</h1>
+          <p class="text-sm text-gray-600">Disease Detection</p>
+        </div>
+      </div>
+      <button id="back-home-btn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition">Back to Home</button>
+    </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-8">
+    <div id="detector-no-results" class="grid md:grid-cols-2 gap-8">
+      <!-- upload -->
+      <div class="bg-white rounded-2xl shadow-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Upload Plant Information</h2>
+        <div class="flex gap-2 mb-6">
+          <button id="input-btn-image" class="flex-1 py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition bg-green-600 text-white"><i data-lucide="camera" class="w-4 h-4"></i> Image</button>
+          <button id="input-btn-voice" class="flex-1 py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition bg-gray-100 text-gray-600 hover:bg-gray-200"><i data-lucide="mic" class="w-4 h-4"></i> Voice</button>
+          <button id="input-btn-text"  class="flex-1 py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition bg-gray-100 text-gray-600 hover:bg-gray-200"><i data-lucide="message-square" class="w-4 h-4"></i> Text</button>
+        </div>
+
+        <!-- image -->
+        <div id="image-input-wrapper">
+          <input type="file" id="image-input" accept="image/*" class="hidden"/>
+          <div id="image-upload-placeholder">
+            <button id="image-upload-btn" class="w-full border-2 border-dashed border-gray-300 rounded-xl p-12 hover:border-green-500 hover:bg-green-50 transition flex flex-col items-center gap-3">
+              <i data-lucide="upload" class="w-12 h-12 text-gray-400"></i>
+              <span class="text-gray-600 font-medium">Click to upload plant image</span>
+            </button>
+          </div>
+          <div id="image-preview-wrapper" class="relative hidden">
+            <img id="image-preview" src="" alt="Preview" class="w-full rounded-xl"/>
+            <button id="image-clear-btn" class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+
+        <!-- voice -->
+        <div id="voice-input-wrapper" class="hidden flex flex-col items-center gap-6 py-8">
+          <div id="voice-circle" class="w-24 h-24 rounded-full flex items-center justify-center bg-green-100"><i id="voice-mic-icon" data-lucide="mic" class="w-12 h-12 text-green-600"></i></div>
+          <button id="voice-toggle-btn" class="px-8 py-3 rounded-lg font-medium transition bg-green-600 hover:bg-green-700 text-white">Start Recording</button>
+        </div>
+
+        <!-- text -->
+        <div id="text-input-wrapper" class="hidden">
+          <textarea id="text-input" placeholder="Describe the symptoms..." class="w-full h-40 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"></textarea>
+        </div>
+
+        <button id="analyze-btn" class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-medium transition flex items-center justify-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed">Analyze Disease</button>
+      </div>
+
+      <!-- how it works -->
+      <div class="bg-white rounded-2xl shadow-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">How It Works</h3>
+        <ol class="space-y-3 text-gray-600">
+          <li class="flex gap-3"><span class="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-medium">1</span><span>Upload image, record voice, or type symptoms</span></li>
+          <li class="flex gap-3"><span class="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-medium">2</span><span>AI analyzes and identifies the disease</span></li>
+          <li class="flex gap-3"><span class="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-medium">3</span><span>Get treatment recommendations and medicine links</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- results -->
+    <div id="detector-results" class="hidden bg-white rounded-2xl shadow-lg p-8">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h2 id="result-disease" class="text-2xl font-bold text-gray-800">Disease Name</h2>
+          <p id="result-confidence" class="text-green-600 font-medium mt-1">Confidence: 0%</p>
+        </div>
+        <button id="result-close-btn" class="text-gray-500 hover:text-gray-700"><i data-lucide="x" class="w-6 h-6"></i></button>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <h3 class="font-semibold text-gray-800 mb-3">Description</h3>
+          <p id="result-description" class="text-gray-600"></p>
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-800 mb-3">Symptoms</h3>
+          <ul id="result-symptoms" class="space-y-2"></ul>
+        </div>
+      </div>
+
+      <div class="bg-green-50 rounded-xl p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">Treatment</h3>
+        <h4 id="result-treatment-name" class="font-medium text-green-700 mb-2"></h4>
+        <p id="result-treatment-application" class="text-gray-600 mb-4"></p>
+        <div id="result-treatment-links" class="flex flex-wrap gap-3"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===== chat FAB ===== -->
+<button id="chat-toggle-btn" class="fixed bottom-6 right-6 bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-2xl transition-all hover:scale-110 z-50"><i data-lucide="bot" class="w-6 h-6"></i></button>
+
+<!-- ===== chat widget ===== -->
+<div id="chat-widget" class="hidden fixed bottom-24 right-6 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50">
+  <div class="bg-green-600 text-white p-4 rounded-t-2xl flex items-center justify-between">
+    <div class="flex items-center gap-2"><i data-lucide="bot" class="w-5 h-5"></i><span class="font-semibold">AgriBot Assistant</span></div>
+    <button id="chat-close-btn" class="hover:bg-green-700 p-1 rounded"><i data-lucide="x" class="w-5 h-5"></i></button>
+  </div>
+  <div id="chat-body" class="h-96 p-4 overflow-y-auto bg-gray-50"></div>
+  <div class="p-4 border-t border-gray-200">
+    <form id="chat-form" class="flex gap-2">
+      <input id="chat-input" type="text" placeholder="Type your question..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"/>
+      <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">Send</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== APP LOGIC ===== -->
+<script>
+/* ---------- utilities ---------- */
+const $ = q => document.querySelector(q);
+const API = (path, opts={}) => fetch(window.ENV.API_BASE + path, {headers:{'Content-Type':'application/json'}, ...opts}).then(r => r.ok ? r.json() : Promise.reject(r));
+
+/* ---------- state ---------- */
+let currentPage = 'home';
+let currentNewsIdx = 0;
+let activeInput = 'image';
+let imageFile = null;
+let isRecording = false;
+let mediaRecorder = null;
+let analyzing = false;
+
+/* ---------- elements ---------- */
+const splash        = $('#intro-splash');
+const homePage      = $('#home-page');
+const detectorPage  = $('#detector-page');
+const newsBadge     = $('#news-type-badge');
+const newsTitle     = $('#news-title');
+const newsDesc      = $('#news-description');
+const newsDate      = $('#news-date');
+const newsDots      = $('#news-dots');
+const innovationsGrid=$('#innovations-grid');
+const weatherBar    = $('#weather-bar');
+
+/* ---------- routing ---------- */
+function switchPage(p){
+  currentPage = p;
+  homePage.classList.toggle('hidden', p !== 'home');
+  detectorPage.classList.toggle('hidden', p !== 'detector');
+  if(p==='home') loadHomeData();
+  lucide.createIcons();
+}
+$('#go-detector-btn').onclick = () => switchPage('detector');
+$('#back-home-btn').onclick   = () => { switchPage('home'); hideResults(); };
+
+/* ---------- splash ---------- */
+setTimeout(() => {
+  splash.classList.add('fade-out');
+  setTimeout(() => { splash.remove(); switchPage('home'); }, 800);
+}, 3000);
+
+/* ---------- home data ---------- */
+async function loadHomeData(){
+  const [weather, news, innovations] = await Promise.all([
+    API('/api/weather', {method:'POST', body:JSON.stringify({location:'Bengaluru', plant_name:'Tomato'})}).catch(() => null),
+    fetch('https://api.npoint.io/3c9e8c0c3c8c3c8c3c8c').catch(() => null), // dummy news endpoint – replace with your own
+    API('/api/databases/status').catch(() => null)
+  ]);
+  if(weather){
+    $('#weather-location').textContent = weather.location.name;
+    $('#weather-temp').textContent     = weather.current_weather.temperature;
+    $('#weather-desc').textContent     = weather.current_weather.condition;
+    $('#weather-rain-tomorrow').textContent = weather.forecast[0].rainfall + ' mm';
+    $('#weather-rain-week').textContent     = weather.forecast.slice(0,7).reduce((a,b)=>a+b.rainfall,0) + ' mm';
+  }
+  renderNews();
+  renderInnovations();
+}
+function renderNews(){
+  const news = [
+    {title:"New Wheat Rust Outbreak in Northern Karnataka", description:"Farmers report 30% crop loss in Belagavi district. Immediate action recommended.", date:"Dec 5, 2025", type:"Disease Alert", severity:"high"},
+    {title:"Heavy Rainfall Expected This Week", description:"IMD predicts 80mm rainfall across coastal regions. Prepare drainage systems.", date:"Dec 6, 2025", type:"Weather", severity:"medium"},
+    {title:"Tomato Late Blight Cases Rising in Maharashtra", description:"15% increase in reported cases. Copper fungicide recommended for prevention.", date:"Dec 4, 2025", type:"Disease Alert", severity:"high"},
+    {title:"Cotton Crop Loss Due to Pink Bollworm", description:"Gujarat farmers face 40% yield reduction. New pest management protocols issued.", date:"Dec 3, 2025", type:"Crop Loss", severity:"critical"}
+  ];
+  const n = news[currentNewsIdx];
+  newsTitle.textContent = n.title;
+  newsDesc.textContent  = n.description;
+  newsDate.textContent  = n.date;
+  newsBadge.textContent = n.type.toUpperCase();
+  newsBadge.className   = 'px-3 py-1 text-white text-xs font-bold rounded-full ' + (n.severity==='critical'?'bg-red-500':n.severity==='high'?'bg-orange-500':n.severity==='medium'?'bg-yellow-500':'bg-blue-500');
+  newsDots.innerHTML = news.map((_,i) => `<button class="rounded-full transition ${i===currentNewsIdx?'bg-green-600 w-8 h-2':'bg-gray-300 w-2 h-2'}" onclick="currentNewsIdx=${i}; renderNews()"></button>`).join('');
+}
+$('#news-prev-btn').onclick = () => { currentNewsIdx = (currentNewsIdx - 1 + 4) % 4; renderNews(); };
+$('#news-next-btn').onclick = () => { currentNewsIdx = (currentNewsIdx + 1) % 4; renderNews(); };
+setInterval(() => { currentNewsIdx = (currentNewsIdx + 1) % 4; renderNews(); }, 5000);
+
+function renderInnovations(){
+  const list = [
+    {title:"Nano-Fertilizer Technology", description:"New nano-coated fertilizers increase nutrient absorption by 60% while reducing usage by 40%.", category:"Fertilizer", impact:"High Efficiency"},
+    {title:"Precision Drip Irrigation System", description:"AI-powered drip systems save 70% water while improving yield by 35%.", category:"Method", impact:"Water Conservation"},
+    {title:"Bio-Pesticide from Neem Extract", description:"Organic pest control solution effective against 20+ common pests with zero chemical residue.", category:"Innovation", impact:"Organic Farming"},
+    {title:"Vertical Farming Modules", description:"Space-efficient vertical systems producing 10x yield per square meter in urban areas.", category:"Innovation", impact:"Urban Agriculture"},
+    {title:"Smart Soil Sensors", description:"IoT sensors monitor pH, moisture, and nutrients in real-time with mobile alerts.", category:"Innovation", impact:"Smart Farming"},
+    {title:"Organic Compost Accelerator", description:"New microbial formula reduces composting time from 90 days to just 21 days.", category:"Fertilizer", impact:"Soil Health"}
+  ];
+  innovationsGrid.innerHTML = list.map(item => `
+    <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition p-6 border border-green-100">
+      <div class="flex items-start justify-between mb-3">
+        <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">${item.category}</span>
+        <span class="text-xs text-gray-500">${item.impact}</span>
+      </div>
+      <h3 class="text-lg font-bold text-gray-800 mb-2">${item.title}</h3>
+      <p class="text-gray-600 text-sm">${item.description}</p>
+    </div>`).join('');
+}
+
+/* ---------- detector ---------- */
+function setInputType(t){
+  activeInput = t;
+  ['image','voice','text'].forEach(id => {
+    const btn = $(`#input-btn-${id}`);
+    btn.className = 'flex-1 py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition bg-gray-100 text-gray-600 hover:bg-gray-200';
+  });
+  $(`#input-btn-${t}`).className = 'flex-1 py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition bg-green-600 text-white';
+  $('#image-input-wrapper').classList.toggle('hidden', t!=='image');
+  $('#voice-input-wrapper').classList.toggle('hidden', t!=='voice');
+  $('#text-input-wrapper').classList.toggle('hidden', t!=='text');
+  $('#analyze-btn').disabled = t==='image' && !imageFile;
+  lucide.createIcons();
+}
+['image','voice','text'].forEach(t => $(`#input-btn-${t}`).onclick = () => setInputType(t));
+
+/* image */
+$('#image-upload-btn').onclick = () => $('#image-input').click();
+$('#image-input').onchange = e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  imageFile = file;
+  const r = new FileReader();
+  r.onloadend = () => { $('#image-preview').src = r.result; $('#image-upload-placeholder').classList.add('hidden'); $('#image-preview-wrapper').classList.remove('hidden'); $('#analyze-btn').disabled = false; };
+  r.readAsDataURL(file);
+};
+$('#image-clear-btn').onclick = () => { imageFile = null; $('#image-input').value = ''; $('#image-upload-placeholder').classList.remove('hidden'); $('#image-preview-wrapper').classList.add('hidden'); $('#analyze-btn').disabled = true; };
+
+/* voice */
+$('#voice-toggle-btn').onclick = async () => {
+  if(!isRecording){
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder = new MediaRecorder(stream);
+    const chunks = [];
+    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunks, {type:'audio/webm'});
+      const r = new FileReader();
+      r.onloadend = () => {
+        // send audio to backend STT endpoint (mocked here)
+        $('#text-input').value = 'Voice recorded – transcription service not configured.';
+      };
+      r.readAsDataURL(blob);
+    };
+    mediaRecorder.start();
+    isRecording = true;
+    $('#voice-circle').classList.remove('bg-green-100'); $('#voice-circle').classList.add('bg-red-100','animate-pulse');
+    $('#voice-mic-icon').classList.remove('text-green-600'); $('#voice-mic-icon').classList.add('text-red-600');
+    $('#voice-toggle-btn').textContent = 'Stop Recording';
+  }else{
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    isRecording = false;
+    $('#voice-circle').classList.remove('bg-red-100','animate-pulse'); $('#voice-circle').classList.add('bg-green-100');
+    $('#voice-mic-icon').classList.remove('text-red-600'); $('#voice-mic-icon').classList.add('text-green-600');
+    $('#voice-toggle-btn').textContent = 'Start Recording';
+  }
+  lucide.createIcons();
+};
+
+/* analyze */
+$('#analyze-btn').onclick = async () => {
+  if(analyzing) return;
+  if(activeInput==='image' && !imageFile){ alert('Please upload an image'); return; }
+  analyzing = true; $('#analyze-btn').textContent = 'Analyzing...'; $('#analyze-btn').disabled = true;
+  try{
+    let payload = {};
+    if(activeInput==='image'){
+      const fd = new FormData();
+      fd.append('image', imageFile);
+      fd.append('treatment_type', 'chemical');
+      const r = await fetch(window.ENV.API_BASE + '/api/analyze', {method:'POST', body:fd});
+      payload = await r.json();
+    }else{
+      const text = $('#text-input').value.trim();
+      if(!text){ alert('Please describe symptoms'); return; }
+      payload = await API('/api/chatbot', {method:'POST', body:JSON.stringify({query:text, plant_info:{}})});
+      payload = {diagnosis: payload.answer, confidence: 0.75, treatment:{name:'Consult local expert', application:payload.answer, products:[]}};
+    }
+    showResults(payload);
+  }catch(e){
+    alert('Analysis failed: ' + e.message);
+  }finally{ analyzing = false; $('#analyze-btn').textContent = 'Analyze Disease'; $('#analyze-btn').disabled = false; }
+};
+
+function showResults(data){
+  $('#detector-no-results').classList.add('hidden');
+  $('#detector-results').classList.remove('hidden');
+  $('#result-disease').textContent = data.diagnosis || 'Unknown';
+  $('#result-confidence').textContent = 'Confidence: ' + Math.round((data.confidence||0)*100) + '%';
+  $('#result-description').textContent = data.description || data.diagnosis;
+  const ul = $('#result-symptoms'); ul.innerHTML = '';
+  (data.symptoms || ['No symptoms listed']).forEach(s => {
+    const li = document.createElement('li'); li.className = 'flex items-center gap-2 text-gray-600';
+    li.innerHTML = '<span class="w-1.5 h-1.5 bg-green-600 rounded-full"></span>' + s; ul.appendChild(li);
+  });
+  $('#result-treatment-name').textContent = data.treatment?.name || 'No treatment found';
+  $('#result-treatment-application').textContent = data.treatment?.application || 'Consult local agronomist';
+  const links = $('#result-treatment-links'); links.innerHTML = '';
+  (data.treatment?.products || []).forEach(p => {
+    const a = document.createElement('a'); a.href = p.url; a.target = '_blank'; a.rel = 'noopener';
+    a.className = 'flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-green-200 hover:border-green-400 transition';
+    a.innerHTML = `<i data-lucide="external-link" class="w-4 h-4 text-green-600"></i><span class="text-gray-700 font-medium">${p.store}</span>`;
+    links.appendChild(a);
+  });
+  lucide.createIcons();
+}
+function hideResults(){
+  $('#detector-results').classList.add('hidden');
+  $('#detector-no-results').classList.remove('hidden');
+}
+$('#result-close-btn').onclick = hideResults;
+
+/* ---------- chat ---------- */
+let chatOpen = false;
+$('#chat-toggle-btn').onclick = () => { chatOpen = !chatOpen; $('#chat-widget').classList.toggle('hidden', !chatOpen); };
+$('#chat-close-btn').onclick  = () => { chatOpen = false; $('#chat-widget').classList.add('hidden'); };
+const chatBody = $('#chat-body');
+function addChatBubble(msg, sender='bot'){
+  const div = document.createElement('div'); div.className = 'mb-3';
+  div.innerHTML = `<div class="${sender==='user'?'ml-auto bg-green-600 text-white':'bg-white'} max-w-xs px-4 py-2 rounded-lg shadow-sm">${msg}</div>`;
+  chatBody.appendChild(div); chatBody.scrollTop = chatBody.scrollHeight;
+}
+$('#chat-form').onsubmit = async e => {
+  e.preventDefault();
+  const input = $('#chat-input');
+  const q = input.value.trim(); if(!q) return;
+  addChatBubble(q, 'user');
+  input.value = '';
+  try{
+    const r = await API('/api/chatbot', {method:'POST', body:JSON.stringify({query:q, plant_info:{}})});
+    addChatBubble(r.answer || 'Sorry, I did not understand.');
+  }catch(err){ addChatBubble('Chat service unavailable.'); }
+};
+
+/* ---------- init ---------- */
+setInputType('image');
+renderNews();
+renderInnovations();
+lucide.createIcons();
+</script>
+</body>
+</html>
